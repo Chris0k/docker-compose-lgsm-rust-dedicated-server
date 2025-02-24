@@ -3,3 +3,4 @@
 /plugins.txt
 .venv
 .env
+mod-plugins/*
