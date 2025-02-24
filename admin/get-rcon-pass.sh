@@ -1,10 +1,12 @@
 #!/bin/bash
 
+service=$1
+
 echo -n 'RCON password: '
-docker compose exec -T lgsm cat rcon_pass 2> /dev/null || (
+docker compose exec -T $service cat rcon_pass 2> /dev/null || (
   # Could not find rcon random password file so falling back to auto detection.
-  docker compose exec -T lgsm pgrep RustDedicated | \
-  xargs -n1 -I'{}' -- docker compose exec -T lgsm cat '/proc/{}/cmdline' | \
+  docker compose exec -T $service pgrep RustDedicated | \
+  xargs -n1 -I'{}' -- docker compose exec -T $service cat '/proc/{}/cmdline' | \
   tr '\0' '\n' | \
   awk '$1 == "+rcon.password" { x="1"; next}; x == "1" {print $0; exit}'
 )

@@ -1,3 +1,6 @@
 #!/bin/bash
 
-docker exec -itu "${1:-linuxgsm}" $(docker compose ps -q lgsm) /bin/bash
+service=$1
+user=$2
+
+docker exec -itu "${user:-linuxgsm}" $(docker compose ps -q "$service") /bin/bash

@@ -4,10 +4,15 @@
 #   Supports logging into the server.
 
 set -e
-plugin_dir=/home/linuxgsm/serverfiles/oxide/plugins
+
+service=$1
+
+plugin_dir=/home/linuxgsm/serverfiles/oxide/plugins/
 plugin_txt=/home/linuxgsm/serverfiles/oxide/config/plugins.txt
+
 export TMP_DIR="$(mktemp -d)"
 trap '[ ! -d "$TMP_DIR" ] || rm -rf "$TMP_DIR"' EXIT
+
 if [ ! -f "$plugin_txt" ];  then
   plugin_txt=/dev/null
 fi
@@ -140,11 +145,18 @@ function remove_plugins() {
 }
 
 function copy_custom_plugins() {
-  if ls /custom-plugins/*.cs &> /dev/null; then
-    rsync -a /custom-plugins/*.cs "${plugin_dir}/"
+  if ls /custom-plugins/"$service"/*.cs &> /dev/null; then
+    rsync -a /custom-plugins/"$service"/*.cs "${plugin_dir}/"
   fi
 }
 
+function copy_oxide_plugins() {
+  if ls /mod-plugins/"$service"/*.cs &> /dev/null; then
+    rsync -a /mod-plugins/"$service"/*.cs "${plugin_dir}/"
+  fi
+}
+
+#copy_oxide_plugins
 copy_custom_plugins
 upgrade_plugins
 add_new_plugins

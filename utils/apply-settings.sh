@@ -2,11 +2,13 @@
 
 set -e
 
+env_file=$1
+
 if ! type -p python && type -p python3; then
   python() { python3 "$@"; }
 fi
 
-[ ! -r /rust-environment.sh ] || source /rust-environment.sh
+[ ! -r "/$env_file" ] || source "/$env_file"
 export ENABLE_RUST_EAC CUSTOM_MAP_URL MAP_BASE_URL SELF_HOST_CUSTOM_MAP
 export seed salt worldsize maxplayers servername apply_settings_debug_mode
 if [ "${apply_settings_debug_mode:-false}" = true ]; then
@@ -14,7 +16,7 @@ if [ "${apply_settings_debug_mode:-false}" = true ]; then
   set -x
 fi
 
-echo 'Applying server settings from rust-environment.sh:'
+echo "Applying server settings from $env_file:"
 
 server_cfg=serverfiles/server/rustserver/cfg/server.cfg
 lgsm_cfg=lgsm/config-lgsm/rustserver/rustserver.cfg
@@ -58,6 +60,7 @@ import sys;
 i=int(sys.stdin.read());
 exit(0) if i >= $2 and i <= $3 else exit(1)" &> /dev/null <<< "$1"
 }
+
 function apply-setting() {
   echo "    $3"
   sed -i "/^ *$2/d" $1
@@ -68,7 +71,7 @@ function apply-generated-map-settings() {
   if [ -z "$worldsize" ] || ! check-range "$worldsize" 1000 6000; then
     worldsize=3000
   fi
-  # apply user-customized settings from rust-environment.sh
+  # apply user-customized settings from $env_file
   apply-setting "$lgsm_cfg" worldsize "worldsize=$worldsize"
   if [ -n "$seed" ]; then
     apply-setting "$lgsm_cfg" seed "seed=$seed"
@@ -87,6 +90,31 @@ function apply-generated-map-settings() {
   else
     sed -i '/^ *salt/d' "$lgsm_cfg"
   fi
+  if [ -n "$server_ip" ]; then
+    apply-setting "$lgsm_cfg" "ip" "ip=$server_ip"
+  fi
+  if [ -n "$server_port" ]; then
+    apply-setting "$lgsm_cfg" "port" "port=$server_port"
+  fi
+  if [ -n "$rcon_port" ]; then
+    apply-setting "$lgsm_cfg" "rconport" "rconport=$rcon_port"
+  fi
+  if [ -n "$query_port" ]; then
+    apply-setting "$lgsm_cfg" "queryport" "queryport=$query_port"
+  fi
+  if [ -n "$app_port" ]; then
+    apply-setting "$lgsm_cfg" "appport" "appport=$app_port"
+  fi
+  if [ -n "$description" ]; then
+    apply-setting "$server_cfg" "server.description" "server.description \"$description\""
+  fi
+  if [ -n "$headerimage" ]; then
+    apply-setting "$server_cfg" "server.headerimage" "server.headerimage \"$headerimage\""
+  fi
+  if [ -n "$tags" ]; then
+    apply-setting "$server_cfg" "server.tags" "server.tags \"$tags\""
+  fi
+  apply-setting "$server_cfg" "server.url" "server.url \"$url\""
 }
 
 servername="${servername:-Rust}"

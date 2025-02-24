@@ -1,5 +1,7 @@
 #!/bin/bash
 
+service=$1
+
 function cleanup_on() {
   if [ "$1" -ne 0 ]; then
     # backup failed so remove the bad backup file
@@ -18,11 +20,11 @@ if grep '^/' <<<  "$0" > /dev/null; then
   cd "${0%admin/*}"
 fi
 
-BACKUP_FILE="$(date  +%Y-%d-%m-%s)"_lgsm-logs-backup.tgz
+BACKUP_FILE="$(date  +%Y-%d-%m-%s)"_rust_backup_"$service"_serverlogs.tgz
 export BACKUP_FILE
 
 [ -d backups ] || mkdir backups
-docker compose exec -Tu linuxgsm lgsm tar -czv log > backups/"$BACKUP_FILE"
+docker compose exec -Tu linuxgsm $service tar -czv log > backups/"$BACKUP_FILE"
 (
 echo
 echo -n 'Created backup file: '

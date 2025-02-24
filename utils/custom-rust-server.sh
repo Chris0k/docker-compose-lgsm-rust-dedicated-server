@@ -6,6 +6,8 @@
 
 set -ex
 
+env_file=$1
+
 [ -f ./linuxgsm.sh ] || (
   if [ -n "${LINUX_GSM_VERSION:-}" ]; then
     curl -fLo linuxgsm.sh \
@@ -31,9 +33,9 @@ sudo rm -f /etc/sudoers.d/lgsm
 
 lgsm_cfg=lgsm/config-lgsm/rustserver/rustserver.cfg
 grep -F -- /utils/apply-settings.sh "$lgsm_cfg" ||
-  echo 'if [ ! "$1" = docker ]; then /utils/apply-settings.sh; source lgsm/config-lgsm/rustserver/rustserver.cfg docker; fi' >> "$lgsm_cfg"
+  echo 'if [ ! "$1" = docker ]; then /utils/apply-settings.sh '${env_file}'; source lgsm/config-lgsm/rustserver/rustserver.cfg docker; fi' >> "$lgsm_cfg"
 /utils/get-or-update-plugins.sh
-/utils/monitor-rust-server.sh &
+/utils/monitor-rust-server.sh "$env_file" &
 
 # start rust server
 ./rustserver start
